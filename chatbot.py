@@ -1,9 +1,10 @@
 from telegram import Update
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, CallbackContext)
-import configparser
+#import configparser
 import logging
 import redis
 from ChatGPT_HKBU import HKBU_ChatGPT
+import os
 
 def equiped_chatgpt(update, context):
     global chatgpt
@@ -15,12 +16,13 @@ def equiped_chatgpt(update, context):
 global redis1
 global chatgpt
 def main():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    updater = Updater(token=(config['TELEGRAM']['ACCESS_TOKEN']), use_context=True)
+    #config = configparser.ConfigParser()
+    #config.read('config.ini')
+    #updater = Updater(token=(config['TELEGRAM']['ACCESS_TOKEN']), use_context=True)
+    updater = Updater(token=(os.environ['ACCESS_TOKEN']),use_context=True)
     dispatcher = updater.dispatcher
     global redis1
-    redis1 = redis.Redis(host=(config['REDIS']['HOST']),password=(config['REDIS']['PASSWORD']),port=(config['REDIS']['REDISPORT']))
+    #redis1 = redis.Redis(host=(config['REDIS']['HOST']),password=(config['REDIS']['PASSWORD']),port=(config['REDIS']['REDISPORT']))
 
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.INFO)
 
@@ -29,12 +31,13 @@ def main():
     # dispatcher.add_handler(echo_handler)
 
     global chatgpt
-    chatgpt = HKBU_ChatGPT(config)
+    #chatgpt = HKBU_ChatGPT(config)
     chatgpt_handler = MessageHandler(Filters.text & (~Filters.command),equiped_chatgpt)
     dispatcher.add_handler(chatgpt_handler)
 
     dispatcher.add_handler(CommandHandler("add", add))
     dispatcher.add_handler(CommandHandler("help", help_command))
+    dispatcher.add_handler(CommandHandler("hello", hello))
 
 
     # To start the bot:
@@ -63,6 +66,10 @@ def add(update: Update, context: CallbackContext) -> None:
 
     except (IndexError, ValueError):
         update.message.reply_text('Usage: /add <keyword>')
+
+def hello(update: Update, context: CallbackContext) -> None:
+    name = context.args[0]
+    update.message.reply_text('Good day, ' + name +'!')
 
 if __name__ == '__main__':
     main()
